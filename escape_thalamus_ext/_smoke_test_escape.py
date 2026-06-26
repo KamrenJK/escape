@@ -112,8 +112,9 @@ async def _main():
     assert result.success
     assert ctx.behav_result["tokens"] >= 1
     assert ctx.behav_result["outcome"] == "success"
-    trials = [json.loads(item)["escape_trial"] for item in ctx._log if "escape_trial" in item]
-    frames = [json.loads(item)["escape_frame"] for item in ctx._log if "escape_frame" in item]
+    decoded = [json.loads(item) for item in ctx._log]
+    trials = [item["escape_trial"] for item in decoded if "escape_trial" in item]
+    frames = [item["escape_frame"] for item in decoded if "escape_frame" in item]
     assert len(trials) == 1
     assert frames
 

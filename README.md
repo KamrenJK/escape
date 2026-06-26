@@ -6,11 +6,25 @@ the right-side safe zone before a fast red or slow yellow predator catches them.
 
 ## Run
 
-Install or activate Thalamus, then launch the task controller with this extension:
+Launch the task controller with the helper script:
 
 ```bash
 cd /Users/kamrenkhan/Desktop/Research/RESTORE/Project/escape
-PYTHONPATH=. python -m thalamus.task_controller --ext escape_thalamus_ext
+./run_escape.sh
+```
+
+The helper uses:
+
+- Thalamus source: `/Users/kamrenkhan/Desktop/Research/RESTORE/Project/Thalamus/source`
+- Python venv: `/Users/kamrenkhan/Desktop/Research/RESTORE/Project/venv-thalamus`
+
+Manual equivalent:
+
+```bash
+cd /Users/kamrenkhan/Desktop/Research/RESTORE/Project/escape
+PYTHONPATH=/Users/kamrenkhan/Desktop/Research/RESTORE/Project/escape:/Users/kamrenkhan/Desktop/Research/RESTORE/Project/Thalamus/source \
+/Users/kamrenkhan/Desktop/Research/RESTORE/Project/venv-thalamus/bin/python \
+-m thalamus.task_controller --ext escape_thalamus_ext
 ```
 
 In the Task Controller UI, add `Escape FID (Predator)` to a task cluster and set
@@ -49,6 +63,7 @@ and configurable defaults.
 With Thalamus available on the Python path:
 
 ```bash
-PYTHONPATH=. python -m escape_thalamus_ext._smoke_test_escape
+PYTHONPATH=/Users/kamrenkhan/Desktop/Research/RESTORE/Project/escape:/Users/kamrenkhan/Desktop/Research/RESTORE/Project/Thalamus/source \
+/Users/kamrenkhan/Desktop/Research/RESTORE/Project/venv-thalamus/bin/python \
+-m escape_thalamus_ext._smoke_test_escape
 ```
-
