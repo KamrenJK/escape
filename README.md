@@ -37,6 +37,8 @@ PYTHONPATH=/Users/kamrenkhan/Desktop/Research/RESTORE/Project/escape:/Users/kamr
 In the Task Controller UI, add `Escape FID (Predator)` to a task cluster and set
 the run goal to the desired number of trials.
 
+For step-by-step GUI instructions, see `docs/gui_run.md`.
+
 ## Controls
 
 - Hold left arrow to move toward the predator and collect reward dots.
