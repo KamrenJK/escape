@@ -3,6 +3,7 @@ import json
 
 from thalamus.config import ObservableDict
 from thalamus.qt import QApplication, Qt
+from PyQt6.QtCore import QEvent
 
 from . import escape_task
 
@@ -13,11 +14,15 @@ class _Servicer:
 
 
 class _KeyEvent:
-    def __init__(self, key):
+    def __init__(self, key, event_type):
         self._key = key
+        self._event_type = event_type
 
     def key(self):
         return self._key
+
+    def type(self):
+        return self._event_type
 
     def isAutoRepeat(self):
         return False
@@ -28,6 +33,7 @@ class _Widget:
         self.key_press_handler = lambda _e: None
         self.key_release_handler = lambda _e: None
         self.renderer = lambda _p: None
+        self._event_filters = []
 
     def width(self):
         return 1000
@@ -36,6 +42,31 @@ class _Widget:
         return 700
 
     def update(self):
+        return None
+
+    def installEventFilter(self, event_filter):
+        self._event_filters.append(event_filter)
+        return None
+
+    def removeEventFilter(self, event_filter):
+        if event_filter in self._event_filters:
+            self._event_filters.remove(event_filter)
+        return None
+
+    def dispatch_key(self, key, event_type):
+        event = _KeyEvent(key, event_type)
+        for event_filter in list(self._event_filters):
+            event_filter.eventFilter(self, event)
+        if event_type == QEvent.Type.KeyRelease:
+            self.key_release_handler(event)
+
+    def setFocusPolicy(self, _policy):
+        return None
+
+    def setFocus(self, _reason):
+        return None
+
+    def window(self):
         return None
 
 
@@ -56,11 +87,11 @@ class _Ctx:
         elapsed = asyncio.get_event_loop().time() - self._start_time
         if not self._started_press and elapsed >= 0.03:
             self._started_press = True
-            self.widget.key_press_handler(_KeyEvent(Qt.Key.Key_Left))
+            self.widget.dispatch_key(Qt.Key.Key_Left, QEvent.Type.KeyPress)
         if not self._started_retreat and elapsed >= 0.85:
             self._started_retreat = True
-            self.widget.key_release_handler(_KeyEvent(Qt.Key.Key_Left))
-            self.widget.key_press_handler(_KeyEvent(Qt.Key.Key_Right))
+            self.widget.dispatch_key(Qt.Key.Key_Left, QEvent.Type.KeyRelease)
+            self.widget.dispatch_key(Qt.Key.Key_Right, QEvent.Type.KeyPress)
         await asyncio.sleep(min(max(duration.total_seconds(), 0.0), 0.02))
 
     def until(self, condition):

@@ -19,6 +19,7 @@ from thalamus.config import ObservableCollection
 from thalamus.qt import QColor, QFont, QPointF, QRect, QRectF, Qt, QWidget, QVBoxLayout
 from thalamus.task_controller.util import TaskResult, animate
 from thalamus.task_controller.widgets import Form
+from PyQt6.QtCore import QEvent, QObject
 
 try:
     from thalamus import task_controller_pb2
@@ -248,6 +249,43 @@ class TrialState:
         return self.token_units >= self.safe_start_units
 
 
+class _KeyStateTracker(QObject):
+    def __init__(self, parent=None) -> None:
+        super().__init__(parent)
+        self.down_keys: set[int] = set()
+
+    def is_down(self, key: int) -> bool:
+        return int(key) in self.down_keys
+
+    def eventFilter(self, _obj, event) -> bool:  # type: ignore[override]
+        try:
+            event_type = event.type()
+            key = int(event.key())
+            is_auto_repeat = bool(event.isAutoRepeat())
+        except Exception:
+            return False
+
+        if is_auto_repeat:
+            return False
+        if event_type == QEvent.Type.KeyPress:
+            self.down_keys.add(key)
+        elif event_type == QEvent.Type.KeyRelease:
+            self.down_keys.discard(key)
+        return False
+
+
+def _focus_widget(widget: QWidget) -> None:
+    try:
+        widget.setFocusPolicy(Qt.FocusPolicy.StrongFocus)
+        widget.setFocus(Qt.FocusReason.OtherFocusReason)
+        window = widget.window()
+        if window is not None:
+            window.activateWindow()
+            window.raise_()
+    except Exception:
+        return
+
+
 async def _publish_state(context, state: str) -> None:
     servicer = getattr(context, "servicer", None)
     if servicer is None or task_controller_pb2 is None:
@@ -289,7 +327,9 @@ async def run(context) -> TaskResult:
     trial_index = int(context.task_config.get("trial_index", 0))
     predator = _choose_predator(context.task_config, cfg)
     state = TrialState(predator, cfg)
-    pressed_keys: set[int] = set()
+    key_tracker = _KeyStateTracker()
+    context.widget.installEventFilter(key_tracker)
+    _focus_widget(context.widget)
     outcome: typing.Optional[str] = None
     success = False
 
@@ -314,28 +354,9 @@ async def run(context) -> TaskResult:
     left_key = Qt.Key.Key_Left
     right_key = Qt.Key.Key_Right
 
-    def key_press_handler(event) -> None:
-        try:
-            key = event.key()
-            if hasattr(event, "isAutoRepeat") and event.isAutoRepeat():
-                return
-        except Exception:
-            return
-        if key in (left_key, right_key):
-            pressed_keys.add(key)
-            context.process()
-
-    def key_release_handler(event) -> None:
-        try:
-            key = event.key()
-            if hasattr(event, "isAutoRepeat") and event.isAutoRepeat():
-                return
-        except Exception:
-            return
-        pressed_keys.discard(key)
+    def key_release_handler(_event) -> None:
         context.process()
 
-    _set_handler(context.widget, "key_press_handler", key_press_handler)
     _set_handler(context.widget, "key_release_handler", key_release_handler)
     context.widget.renderer = _make_game_renderer(context.widget, state)
     context.widget.update()
@@ -355,9 +376,9 @@ async def run(context) -> TaskResult:
         last_perf = now
 
         direction = 0.0
-        if left_key in pressed_keys:
+        if key_tracker.is_down(left_key):
             direction -= 1.0
-        if right_key in pressed_keys:
+        if key_tracker.is_down(right_key):
             direction += 1.0
         state.token_units = max(0.0, min(AXIS_UNITS, state.token_units + direction * cfg.token_speed_units_s * dt))
         if not state.in_safe_zone():
@@ -428,9 +449,8 @@ async def run(context) -> TaskResult:
         context.widget.update()
         await context.sleep(datetime.timedelta(seconds=frame_interval_s))
 
-    _set_handler(context.widget, "key_press_handler", None)
     _set_handler(context.widget, "key_release_handler", None)
-    pressed_keys.clear()
+    context.widget.removeEventFilter(key_tracker)
 
     await _publish_state(context, f"escape_{outcome}")
     trial_result = {
@@ -454,4 +474,3 @@ async def run(context) -> TaskResult:
     await context.sleep(datetime.timedelta(seconds=cfg.feedback_s))
 
     return TaskResult(success)
-
