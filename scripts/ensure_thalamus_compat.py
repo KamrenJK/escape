@@ -40,14 +40,40 @@ def _ensure_pypipeline_about(thalamus_root: pathlib.Path) -> None:
     path.write_text(text.replace(needle, replacement, 1))
 
 
+def _ensure_pypipeline_stream_returns(thalamus_root: pathlib.Path) -> None:
+    path = thalamus_root / "thalamus" / "pipeline" / "pypipeline.py"
+    text = path.read_text()
+    replacements = {
+        "  async def log(self, stream: typing.AsyncIterable[thalamus_pb2.Text], context: grpc.ServicerContext):\n"
+        "    async for text in stream:\n"
+        "      LOGGER.debug('Pipeline %s', text.text)\n":
+        "  async def log(self, stream: typing.AsyncIterable[thalamus_pb2.Text], context: grpc.ServicerContext):\n"
+        "    async for text in stream:\n"
+        "      LOGGER.debug('Pipeline %s', text.text)\n"
+        "    return thalamus_pb2.Empty()\n",
+        "  async def inject_analog(self, stream: typing.AsyncIterable[thalamus_pb2.Text], context: grpc.ServicerContext):\n"
+        "    async for text in stream:\n"
+        "      pass\n":
+        "  async def inject_analog(self, stream: typing.AsyncIterable[thalamus_pb2.Text], context: grpc.ServicerContext):\n"
+        "    async for text in stream:\n"
+        "      pass\n"
+        "    return thalamus_pb2.Empty()\n",
+    }
+    updated = text
+    for needle, replacement in replacements.items():
+        updated = updated.replace(needle, replacement, 1)
+    if updated != text:
+        path.write_text(updated)
+
+
 def main() -> None:
     if len(sys.argv) != 2:
         raise SystemExit("Usage: ensure_thalamus_compat.py /path/to/Thalamus/source")
     thalamus_root = pathlib.Path(sys.argv[1]).resolve()
     _ensure_generated_protos(thalamus_root)
     _ensure_pypipeline_about(thalamus_root)
+    _ensure_pypipeline_stream_returns(thalamus_root)
 
 
 if __name__ == "__main__":
     main()
-
