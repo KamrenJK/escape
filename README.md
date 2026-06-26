@@ -17,6 +17,13 @@ The helper uses:
 
 - Thalamus source: `/Users/kamrenkhan/Desktop/Research/RESTORE/Project/Thalamus/source`
 - Python venv: `/Users/kamrenkhan/Desktop/Research/RESTORE/Project/venv-thalamus`
+- Python pipeline mode: `-y`, because a source checkout does not include the compiled `thalamus/native` executable.
+
+If you later use a Thalamus install that includes the native executable:
+
+```bash
+ESCAPE_USE_NATIVE=1 ./run_escape.sh
+```
 
 Manual equivalent:
 
@@ -24,7 +31,7 @@ Manual equivalent:
 cd /Users/kamrenkhan/Desktop/Research/RESTORE/Project/escape
 PYTHONPATH=/Users/kamrenkhan/Desktop/Research/RESTORE/Project/escape:/Users/kamrenkhan/Desktop/Research/RESTORE/Project/Thalamus/source \
 /Users/kamrenkhan/Desktop/Research/RESTORE/Project/venv-thalamus/bin/python \
--m thalamus.task_controller --ext escape_thalamus_ext
+-m thalamus.task_controller -y --ext escape_thalamus_ext
 ```
 
 In the Task Controller UI, add `Escape FID (Predator)` to a task cluster and set

@@ -8,5 +8,10 @@ PYTHON="${PROJECT_ROOT}/venv-thalamus/bin/python"
 
 cd "${ESCAPE_ROOT}"
 export PYTHONPATH="${ESCAPE_ROOT}:${THALAMUS_ROOT}${PYTHONPATH:+:${PYTHONPATH}}"
-exec "${PYTHON}" -m thalamus.task_controller --ext escape_thalamus_ext "$@"
+"${PYTHON}" "${ESCAPE_ROOT}/scripts/ensure_thalamus_compat.py" "${THALAMUS_ROOT}"
 
+if [[ "${ESCAPE_USE_NATIVE:-0}" == "1" ]]; then
+  exec "${PYTHON}" -m thalamus.task_controller --ext escape_thalamus_ext "$@"
+fi
+
+exec "${PYTHON}" -m thalamus.task_controller -y --ext escape_thalamus_ext "$@"
