@@ -449,7 +449,7 @@ async def run(context) -> TaskResult:
         context.widget.update()
         await context.sleep(datetime.timedelta(seconds=frame_interval_s))
 
-    _set_handler(context.widget, "key_release_handler", None)
+    _set_handler(context.widget, "key_release_handler", lambda _event: None)
     context.widget.removeEventFilter(key_tracker)
 
     await _publish_state(context, f"escape_{outcome}")

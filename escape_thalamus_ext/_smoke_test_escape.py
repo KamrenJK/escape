@@ -141,6 +141,7 @@ async def _main():
     ctx = _Ctx(cfg)
     result = await escape_task.run(ctx)
     assert result.success
+    assert callable(ctx.widget.key_release_handler)
     assert ctx.behav_result["tokens"] >= 1
     assert ctx.behav_result["outcome"] == "success"
     decoded = [json.loads(item) for item in ctx._log]
