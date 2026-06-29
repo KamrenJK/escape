@@ -1,0 +1,33 @@
+# Data Analysis Dependencies
+# Python 3.8+ recommended
+
+# Core scientific computing
+numpy>=1.26.0
+pandas>=2.0.3
+scipy>=1.11.1
+
+# Visualization
+matplotlib>=3.7.2
+seaborn>=0.12.2
+plotly>=5.15.0
+
+# Jupyter
+jupyter
+jupyterlab
+notebook
+ipykernel
+ipywidgets
+
+# Data handling
+h5py
+openpyxl
+xlrd
+
+# Statistical analysis
+statsmodels
+scikit-learn
+
+# Additional utilities
+tqdm
+python-dateutil
+pytz

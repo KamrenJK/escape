@@ -21,6 +21,8 @@ from thalamus.task_controller.util import TaskResult, animate
 from thalamus.task_controller.widgets import Form
 from PyQt6.QtCore import QEvent, QObject
 
+from . import session_data
+
 try:
     from thalamus import task_controller_pb2
 except Exception:  # pragma: no cover - present in Thalamus runtime
@@ -70,17 +72,17 @@ def create_widget(task_config: ObservableCollection) -> QWidget:
         Form.Constant("Reward dots", "dot_count", 17, precision=0),
         Form.Constant("Token speed", "token_speed_units_s", 35.0, " units/s", precision=1),
         Form.Constant("Predator approach speed", "pre_attack_speed_units_s", 6.0, " units/s", precision=1),
-        Form.Constant("Fast attack acceleration", "fast_attack_accel_units_s2", 95.0, " units/s2", precision=1),
-        Form.Constant("Slow attack acceleration", "slow_attack_accel_units_s2", 35.0, " units/s2", precision=1),
-        Form.Constant("Fast attack max speed", "fast_attack_max_speed_units_s", 70.0, " units/s", precision=1),
-        Form.Constant("Slow attack max speed", "slow_attack_max_speed_units_s", 30.0, " units/s", precision=1),
+        Form.Constant("Fast attack acceleration", "fast_attack_accel_units_s2", 168.0, " units/s2", precision=1),
+        Form.Constant("Slow attack acceleration", "slow_attack_accel_units_s2", 27.0, " units/s2", precision=1),
+        Form.Constant("Fast attack max speed", "fast_attack_max_speed_units_s", 200.0, " units/s", precision=1),
+        Form.Constant("Slow attack max speed", "slow_attack_max_speed_units_s", 65.0, " units/s", precision=1),
         Form.Constant("Fast attack mean distance", "fast_attack_mean_units", 60.0, " units", precision=1),
-        Form.Constant("Fast attack SD", "fast_attack_sd_units", 3.0, " units", precision=1),
-        Form.Constant("Slow attack mean distance", "slow_attack_mean_units", 10.0, " units", precision=1),
-        Form.Constant("Slow attack SD", "slow_attack_sd_units", 3.0, " units", precision=1),
+        Form.Constant("Fast attack SD", "fast_attack_sd_units", 5.0, " units", precision=1),
+        Form.Constant("Slow attack mean distance", "slow_attack_mean_units", 30.0, " units", precision=1),
+        Form.Constant("Slow attack SD", "slow_attack_sd_units", 5.0, " units", precision=1),
         Form.Constant("Safe zone width", "safe_zone_units", 8.0, " units", precision=1),
         Form.Constant("Collision radius", "collision_radius_units", 3.0, " units", precision=1),
-        Form.Constant("Ready screen", "ready_s", 0.8, " s", precision=2),
+        Form.Constant("Ready screen", "ready_s", 0.0, " s", precision=2),
         Form.Constant("Feedback screen", "feedback_s", 1.25, " s", precision=2),
         Form.Constant("Max trial time", "max_trial_s", 20.0, " s", precision=1),
         Form.Constant("Frame rate", "frame_hz", 60.0, " Hz", precision=1),
@@ -99,17 +101,17 @@ def _read_cfg(task_config: ObservableCollection) -> Config:
         dot_count=max(1, int(task_config.get("dot_count", 17))),
         token_speed_units_s=float(task_config.get("token_speed_units_s", 35.0)),
         pre_attack_speed_units_s=float(task_config.get("pre_attack_speed_units_s", 6.0)),
-        fast_attack_accel_units_s2=float(task_config.get("fast_attack_accel_units_s2", 95.0)),
-        slow_attack_accel_units_s2=float(task_config.get("slow_attack_accel_units_s2", 35.0)),
+        fast_attack_accel_units_s2=float(task_config.get("fast_attack_accel_units_s2", 70.0)),
+        slow_attack_accel_units_s2=float(task_config.get("slow_attack_accel_units_s2", 70.0)),
         fast_attack_max_speed_units_s=float(task_config.get("fast_attack_max_speed_units_s", 70.0)),
-        slow_attack_max_speed_units_s=float(task_config.get("slow_attack_max_speed_units_s", 30.0)),
+        slow_attack_max_speed_units_s=float(task_config.get("slow_attack_max_speed_units_s", 70.0)),
         fast_attack_mean_units=float(task_config.get("fast_attack_mean_units", 60.0)),
-        fast_attack_sd_units=max(0.0, float(task_config.get("fast_attack_sd_units", 3.0))),
-        slow_attack_mean_units=float(task_config.get("slow_attack_mean_units", 10.0)),
-        slow_attack_sd_units=max(0.0, float(task_config.get("slow_attack_sd_units", 3.0))),
+        fast_attack_sd_units=max(0.0, float(task_config.get("fast_attack_sd_units", 5.0))),
+        slow_attack_mean_units=float(task_config.get("slow_attack_mean_units", 30.0)),
+        slow_attack_sd_units=max(0.0, float(task_config.get("slow_attack_sd_units", 5.0))),
         safe_zone_units=float(task_config.get("safe_zone_units", 8.0)),
         collision_radius_units=float(task_config.get("collision_radius_units", 3.0)),
-        ready_s=float(task_config.get("ready_s", 0.8)),
+        ready_s=float(task_config.get("ready_s", 0.0)),
         feedback_s=float(task_config.get("feedback_s", 1.25)),
         max_trial_s=float(task_config.get("max_trial_s", 20.0)),
         frame_hz=max(1.0, float(task_config.get("frame_hz", 60.0))),
@@ -167,12 +169,9 @@ def _draw_centered_text(painter, widget: QWidget, text: str, color: QColor, size
     )
 
 
-def _make_ready_renderer(widget: QWidget, predator: str):
+def _make_ready_renderer(widget: QWidget):
     def renderer(painter) -> None:
         painter.fillRect(QRect(0, 0, widget.width(), widget.height()), QColor(10, 10, 12))
-        color = _predator_color(predator)
-        label = "FAST" if predator == FAST else "SLOW"
-        _draw_centered_text(painter, widget, label, color, 72)
 
     return renderer
 
@@ -196,7 +195,8 @@ def _make_game_renderer(widget: QWidget, state: "TrialState"):
         safe_x = _to_screen_x(safe_start, widget, left, width)
 
         painter.setPen(Qt.PenStyle.NoPen)
-        painter.setBrush(QColor(28, 38, 48))
+        safe_zone_color = QColor(180, 30, 30) if state.caught else QColor(20, 80, 30) if state.escaped else QColor(28, 38, 48)
+        painter.setBrush(safe_zone_color)
         painter.drawRect(QRectF(safe_x, y - 56, left + width - safe_x, 112))
 
         painter.setPen(QColor(150, 154, 162))
@@ -217,7 +217,8 @@ def _make_game_renderer(widget: QWidget, state: "TrialState"):
         radius = 16.0 if not state.attack_started else 22.0
         painter.drawEllipse(QPointF(predator_x, y), radius, radius)
 
-        painter.setBrush(QColor(80, 170, 255))
+        token_color = QColor(220, 60, 60) if state.caught else QColor(60, 220, 80) if state.escaped else QColor(80, 170, 255)
+        painter.setBrush(token_color)
         painter.drawEllipse(QPointF(token_x, y), 14.0, 14.0)
 
         painter.setPen(QColor(225, 225, 225))
@@ -239,8 +240,16 @@ class TrialState:
         self.attack_started = False
         self.attack_on_perf: typing.Optional[float] = None
         self.attack_on_elapsed_s: typing.Optional[float] = None
+        self.attack_on_token_units: typing.Optional[float] = None
+        self.attack_on_predator_units: typing.Optional[float] = None
+        self.escape_on_elapsed_s: typing.Optional[float] = None
+        self.escape_token_units: typing.Optional[float] = None
+        self.escape_predator_units: typing.Optional[float] = None
+        self.flight_initiation_distance_units: typing.Optional[float] = None
         self.tokens = 0
         self.has_left_safe_zone = False
+        self.escaped = False
+        self.caught = False
         self.collected_dot_indices: set[int] = set()
         spacing = AXIS_UNITS / float(cfg.dot_count + 2)
         self.dot_units = [spacing * float(i + 1) for i in range(cfg.dot_count)]
@@ -253,9 +262,15 @@ class _KeyStateTracker(QObject):
     def __init__(self, parent=None) -> None:
         super().__init__(parent)
         self.down_keys: set[int] = set()
+        self.pressed_keys: list[int] = []
 
     def is_down(self, key: int) -> bool:
         return int(key) in self.down_keys
+
+    def pop_pressed(self) -> list[int]:
+        keys = self.pressed_keys[:]
+        self.pressed_keys.clear()
+        return keys
 
     def eventFilter(self, _obj, event) -> bool:  # type: ignore[override]
         try:
@@ -269,6 +284,7 @@ class _KeyStateTracker(QObject):
             return False
         if event_type == QEvent.Type.KeyPress:
             self.down_keys.add(key)
+            self.pressed_keys.append(key)
         elif event_type == QEvent.Type.KeyRelease:
             self.down_keys.discard(key)
         return False
@@ -332,9 +348,10 @@ async def run(context) -> TaskResult:
     _focus_widget(context.widget)
     outcome: typing.Optional[str] = None
     success = False
+    token_direction = 0.0
+    auto_flee = False
+    trial_start_wall_time = time.time()
 
-    context.widget.renderer = _make_ready_renderer(context.widget, predator)
-    context.widget.update()
     await _publish_state(context, "escape_ready")
     await context.log(
         json.dumps(
@@ -349,7 +366,10 @@ async def run(context) -> TaskResult:
             }
         )
     )
-    await context.sleep(datetime.timedelta(seconds=cfg.ready_s))
+    if cfg.ready_s > 0:
+        context.widget.renderer = _make_ready_renderer(context.widget)
+        context.widget.update()
+        await context.sleep(datetime.timedelta(seconds=cfg.ready_s))
 
     left_key = Qt.Key.Key_Left
     right_key = Qt.Key.Key_Right
@@ -375,12 +395,20 @@ async def run(context) -> TaskResult:
         dt = max(0.0, min(0.1, now - last_perf))
         last_perf = now
 
-        direction = 0.0
-        if key_tracker.is_down(left_key):
-            direction -= 1.0
-        if key_tracker.is_down(right_key):
-            direction += 1.0
-        state.token_units = max(0.0, min(AXIS_UNITS, state.token_units + direction * cfg.token_speed_units_s * dt))
+        for key in key_tracker.pop_pressed():
+            if key == int(left_key):
+                auto_flee = False
+                token_direction = -1.0
+            elif key == int(right_key):
+                auto_flee = True
+                token_direction = 1.0
+                if state.has_left_safe_zone and state.escape_on_elapsed_s is None:
+                    state.escape_on_elapsed_s = elapsed_s
+                    state.escape_token_units = state.token_units
+                    state.escape_predator_units = state.predator_units
+                    state.flight_initiation_distance_units = state.token_units - state.predator_units
+
+        state.token_units = max(0.0, min(AXIS_UNITS, state.token_units + token_direction * cfg.token_speed_units_s * dt))
         if not state.in_safe_zone():
             state.has_left_safe_zone = True
 
@@ -409,6 +437,8 @@ async def run(context) -> TaskResult:
             state.attack_started = True
             state.attack_on_perf = now
             state.attack_on_elapsed_s = elapsed_s
+            state.attack_on_token_units = state.token_units
+            state.attack_on_predator_units = state.predator_units
 
         if state.attack_started:
             accel = cfg.fast_attack_accel_units_s2 if predator == FAST else cfg.slow_attack_accel_units_s2
@@ -431,28 +461,38 @@ async def run(context) -> TaskResult:
                     )
                 )
 
-        if state.has_left_safe_zone:
-            state.predator_units = min(AXIS_UNITS, state.predator_units + state.predator_speed_units_s * dt)
+        state.predator_units = min(AXIS_UNITS, state.predator_units + state.predator_speed_units_s * dt)
 
         if state.has_left_safe_zone and state.in_safe_zone() and (state.tokens > 0 or cfg.allow_zero_token_success):
             outcome = "success"
             success = True
+            state.escaped = True
         elif state.has_left_safe_zone and not state.in_safe_zone() and state.predator_units >= state.token_units - cfg.collision_radius_units:
             outcome = "caught"
+            state.caught = True
         elif elapsed_s >= cfg.max_trial_s:
             outcome = "timeout"
 
         if cfg.log_frames and now - last_frame_log_perf >= frame_log_interval_s:
             last_frame_log_perf = now
-            await context.log(json.dumps({"escape_frame": _frame_payload(trial_index, state, elapsed_s, outcome)}))
+            frame_payload = _frame_payload(trial_index, state, elapsed_s, outcome)
+            await context.log(json.dumps({"escape_frame": frame_payload}))
+            session_data.append_frame(frame_payload)
 
         context.widget.update()
         await context.sleep(datetime.timedelta(seconds=frame_interval_s))
+
+    context.widget.update()
+    await context.sleep(datetime.timedelta(milliseconds=300))
 
     _set_handler(context.widget, "key_release_handler", lambda _event: None)
     context.widget.removeEventFilter(key_tracker)
 
     await _publish_state(context, f"escape_{outcome}")
+    trial_end_wall_time = time.time()
+    condition_adjusted_risk = None
+    if state.flight_initiation_distance_units is not None:
+        condition_adjusted_risk = (state.flight_initiation_distance_units - state.attack_distance_units) / AXIS_UNITS
     trial_result = {
         "trial_index": trial_index,
         "predator": predator,
@@ -460,10 +500,21 @@ async def run(context) -> TaskResult:
         "outcome": outcome,
         "tokens": state.tokens,
         "collected_dot_indices": sorted(state.collected_dot_indices),
+        "attack_started": state.attack_started,
         "attack_distance_units": state.attack_distance_units,
         "attack_on_elapsed_s": state.attack_on_elapsed_s,
+        "attack_on_token_units": state.attack_on_token_units,
+        "attack_on_predator_units": state.attack_on_predator_units,
+        "escape_on_elapsed_s": state.escape_on_elapsed_s,
+        "escape_token_units": state.escape_token_units,
+        "escape_predator_units": state.escape_predator_units,
+        "flight_initiation_distance_units": state.flight_initiation_distance_units,
+        "condition_adjusted_risk": condition_adjusted_risk,
         "final_token_units": state.token_units,
         "final_predator_units": state.predator_units,
+        "trial_start_wall_time": trial_start_wall_time,
+        "trial_end_wall_time": trial_end_wall_time,
+        "trial_duration_s": trial_end_wall_time - trial_start_wall_time,
     }
     context.behav_result = trial_result
     await context.log(json.dumps({"escape_trial": trial_result}))
@@ -471,6 +522,7 @@ async def run(context) -> TaskResult:
 
     context.widget.renderer = _make_feedback_renderer(context.widget, success, state.tokens)
     context.widget.update()
+    session_data.append_trial(trial_result)
     await context.sleep(datetime.timedelta(seconds=cfg.feedback_s))
 
     return TaskResult(success)

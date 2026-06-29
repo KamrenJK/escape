@@ -1,0 +1,128 @@
+{
+  "frames": {
+    "shape": [
+      3046,
+      11
+    ],
+    "columns": [
+      "attack_distance_units",
+      "attack_started",
+      "distance_units",
+      "elapsed_s",
+      "in_safe_zone",
+      "outcome",
+      "predator",
+      "predator_units",
+      "token_units",
+      "tokens",
+      "trial_index"
+    ],
+    "dtypes": {
+      "attack_distance_units": "float64",
+      "attack_started": "bool",
+      "distance_units": "float64",
+      "elapsed_s": "float64",
+      "in_safe_zone": "bool",
+      "outcome": "str",
+      "predator": "str",
+      "predator_units": "float64",
+      "token_units": "float64",
+      "tokens": "int64",
+      "trial_index": "int64"
+    }
+  },
+  "trials": {
+    "shape": [
+      24,
+      20
+    ],
+    "columns": [
+      "attack_distance_units",
+      "attack_on_elapsed_s",
+      "attack_on_predator_units",
+      "attack_on_token_units",
+      "collected_dot_indices",
+      "condition_adjusted_risk",
+      "escape_on_elapsed_s",
+      "escape_predator_units",
+      "escape_token_units",
+      "final_predator_units",
+      "final_token_units",
+      "flight_initiation_distance_units",
+      "outcome",
+      "predator",
+      "success",
+      "tokens",
+      "trial_duration_s",
+      "trial_end_wall_time",
+      "trial_index",
+      "trial_start_wall_time"
+    ],
+    "dtypes": {
+      "attack_distance_units": "float64",
+      "attack_on_elapsed_s": "float64",
+      "attack_on_predator_units": "float64",
+      "attack_on_token_units": "float64",
+      "collected_dot_indices": "object",
+      "condition_adjusted_risk": "float64",
+      "escape_on_elapsed_s": "float64",
+      "escape_predator_units": "float64",
+      "escape_token_units": "float64",
+      "final_predator_units": "float64",
+      "final_token_units": "float64",
+      "flight_initiation_distance_units": "float64",
+      "outcome": "str",
+      "predator": "str",
+      "success": "bool",
+      "tokens": "int64",
+      "trial_duration_s": "float64",
+      "trial_end_wall_time": "float64",
+      "trial_index": "int64",
+      "trial_start_wall_time": "float64"
+    }
+  },
+  "trials_tsv": {
+    "shape": [
+      24,
+      17
+    ],
+    "columns": [
+      "trial_index",
+      "predator",
+      "success",
+      "outcome",
+      "tokens",
+      "trial_duration_s",
+      "attack_distance_units",
+      "attack_on_elapsed_s",
+      "attack_on_token_units",
+      "attack_on_predator_units",
+      "escape_on_elapsed_s",
+      "escape_token_units",
+      "escape_predator_units",
+      "flight_initiation_distance_units",
+      "condition_adjusted_risk",
+      "final_token_units",
+      "final_predator_units"
+    ],
+    "dtypes": {
+      "trial_index": "int64",
+      "predator": "str",
+      "success": "bool",
+      "outcome": "str",
+      "tokens": "int64",
+      "trial_duration_s": "float64",
+      "attack_distance_units": "float64",
+      "attack_on_elapsed_s": "float64",
+      "attack_on_token_units": "float64",
+      "attack_on_predator_units": "float64",
+      "escape_on_elapsed_s": "float64",
+      "escape_token_units": "float64",
+      "escape_predator_units": "float64",
+      "flight_initiation_distance_units": "float64",
+      "condition_adjusted_risk": "float64",
+      "final_token_units": "float64",
+      "final_predator_units": "float64"
+    }
+  }
+}

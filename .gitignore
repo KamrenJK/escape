@@ -3,7 +3,9 @@ Pilot Data/
 *.tha
 *.tha.json
 thalamus.db
+data/
+.claude/
+piloting/piloting_env/
 __pycache__/
 *.py[cod]
 .DS_Store
-

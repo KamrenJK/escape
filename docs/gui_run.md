@@ -52,6 +52,14 @@ You should see an item appear in the right-side `Queue` panel.
 
 For a visual-only dry run, skip this step.
 
+Escape always writes local per-session data under:
+
+```text
+/Users/kamrenkhan/Desktop/Research/RESTORE/Project/escape/data/<SESSION_ID>/
+```
+
+Use `STORAGE2` only when you also want a Thalamus `.tha` recording.
+
 For recording:
 
 1. In the Thalamus pipeline window, click `Add` to create a node.
@@ -114,4 +122,3 @@ The keyboard events go to whichever window has focus.
 
 Make sure the task `Goal` is greater than zero before clicking `Enqueue Task` or
 `Enqueue Task Cluster`.
-

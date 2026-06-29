@@ -31,6 +31,8 @@ speed parameters.
 Success feedback shows a green plus and the number of tokens gained. Failure
 feedback shows a red X and "failure".
 
+The task no longer shows a predator-condition screen before each trial.
+
 ## Logging
 
 The task writes JSON logs to the Thalamus text stream:
@@ -42,3 +44,10 @@ The task writes JSON logs to the Thalamus text stream:
 - `escape_frame`: sampled frame-level position state.
 - `escape_trial`: final outcome and trial summary.
 
+Each launcher run also creates `data/<SESSION_ID>/` with raw JSONL/TSV outputs,
+summary text, and PNG plots. Risk-aversiveness is defined as earlier retreat at a
+larger predator-prey distance. The condition-adjusted score is:
+
+```text
+(flight initiation distance - sampled attack distance) / 100
+```

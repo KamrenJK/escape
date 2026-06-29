@@ -56,13 +56,34 @@ current display size.
 
 ## Data
 
-Trial and frame-level logs are JSON records on the Thalamus text stream:
+Each launch creates a new local session folder:
+
+```text
+/Users/kamrenkhan/Desktop/Research/RESTORE/Project/escape/data/<SESSION_ID>/
+```
+
+The launcher prints the session ID and data directory at startup. The task writes:
+
+- `summary.txt`: number of trials, accuracy, total reward, session duration, average trial duration, and risk-aversiveness scores.
+- `trials.jsonl`: one JSON trial summary per trial.
+- `trials.tsv`: tabular trial summary.
+- `frames.jsonl`: sampled frame-level token/predator positions.
+- `success_reward_by_condition.png`: success and reward by fast vs slow predator.
+- `escape_points_by_condition.png`: flight initiation distance distribution with empirical attack-distance mean and SD.
+- `distance_time_by_trial.png`: predator-token distance over trial time.
+- `x_axis_escape_and_attack.png`: retreat, chase initiation, and distance profiles over the token x-axis.
+
+The same trial and frame-level records are also written to the Thalamus text stream:
 
 - `escape_trial_start`
 - `escape_reward`
 - `escape_attack`
 - `escape_frame`
 - `escape_trial`
+
+Risk-aversiveness is reported two ways: raw FID normalized to the 100-unit axis,
+and condition-adjusted risk, `(flight initiation distance - sampled attack distance) / 100`.
+Higher values indicate earlier retreat at larger predator-prey distance.
 
 See `docs/protocol.md` and `configs/escape_defaults.json` for the current design
 and configurable defaults.
